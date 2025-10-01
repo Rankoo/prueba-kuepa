@@ -1,22 +1,26 @@
-import { app, user } from "@/atoms/kuepa"
-import { useToast } from "@/components/hooks/use-toast"
+import { app } from "@/atoms/kuepa"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { leadService } from "@/services/leadService"
-import { programService } from "@/services/programService"
-import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
+import { useEffect } from "react"
+import { useLeadForm } from "./hooks/useLeadForm"
+import { useNavigate } from "react-router-dom";
 
 export interface LeadsProps {
 }
 
 export default function LeadCreate (props?: LeadsProps) {
 
- const { t } = useTranslation()
-  const { toast } = useToast()
-
-  const [formData, setFormData] = useState({
+   const {
+    form, 
+    loading,
+    programs,
+    shouldRedirect,
+    handleChange,
+    handleChangeSelect,
+    handleSubmit,
+  } = useLeadForm({
     first_name: "",
     last_name: "",
     email: "",
@@ -24,52 +28,16 @@ export default function LeadCreate (props?: LeadsProps) {
     interestProgram: ""
   })
 
-  const [programs, setPrograms] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage(null)
-
-    try {
-      console.log(formData);
-      
-      const response = await leadService.post({_data: formData})
-      toast({
-        title: "¡Lead guardado!",
-        description: "Lead guardado exitosamente",
-      })
-      // setMessage("✅ Lead creado con éxito")
-      setFormData({
-        ...formData,
-        first_name: "",
-        last_name: "",
-        email: "",
-        mobile_phone: ""
-      }) // limpiar form
-    } catch (err) {
-      console.error(err)
-      setMessage("❌ Error al crear el lead")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const init = async () => {
-    programService.getAll().then(({list})=>{
-      setPrograms(list.map(({_id, name}) => ({value: _id, label: name})))
-    })
-  }
+  const navigate = useNavigate()
 
   useEffect(() => {
-    init()
+    if (shouldRedirect) {
+      navigate('/leads');
+    }
+
+   },[shouldRedirect])
+
+  useEffect(() => {
     app.set({
       ...(app.get() || {}),
       app: 'kuepa',      module: 'leads',
@@ -78,16 +46,24 @@ export default function LeadCreate (props?: LeadsProps) {
       accent: 'purple',
       breadcrumb:[
         {
+          title: 'Home',
+          url: '/home'
+        },
+        {
           title: 'Leads',
           url: '/leads'
+        },
+        {
+          title: 'New',
+          url: '/leads/new'
         }
       ]
     })
   }, [])
 
   return (
-    <div className="p-6">
-      <h1 className="flex text-4xl font-title text-purple-800 mb-6">¡Hola Aswinnn!</h1>
+    <div className="p-6 flex flex-col items-center">
+      <h1 className="flex text-4xl font-title text-purple-800 mb-6">Nuevo Lead</h1>
 
       <form
         onSubmit={handleSubmit}
@@ -106,7 +82,7 @@ export default function LeadCreate (props?: LeadsProps) {
             name="first_name"
             type="text"
             placeholder="Tus nombres"
-            value={formData.first_name}
+            value={form.first_name}
             onChange={handleChange}
             required
           />
@@ -121,7 +97,7 @@ export default function LeadCreate (props?: LeadsProps) {
             name="last_name"
             type="text"
             placeholder="Tus apellidos"
-            value={formData.last_name}
+            value={form.last_name}
             onChange={handleChange}
             required
           />
@@ -135,7 +111,7 @@ export default function LeadCreate (props?: LeadsProps) {
             name="email"
             type="email"
             placeholder="tu@email.com"
-            value={formData.email}
+            value={form.email}
             onChange={handleChange}
             required
           />
@@ -150,7 +126,7 @@ export default function LeadCreate (props?: LeadsProps) {
             type="tel"
             pattern="[0-9]{10}"
             placeholder="Ej: 3013690003"
-            value={formData.mobile_phone}
+            value={form.mobile_phone}
             onChange={handleChange}
             required
           />
@@ -159,7 +135,15 @@ export default function LeadCreate (props?: LeadsProps) {
           <Label htmlFor="program">
             Programa en el que estas interesado 
           </Label>
-          <Select name="program" value={formData.interestProgram} onValueChange={(value)=>{ setFormData({...formData, interestProgram: value})}}>
+          <Select
+            name="program"
+            value={form.interestProgram}
+            onValueChange={
+              (value) => {
+                handleChangeSelect({ name: "interestProgram", value})
+              }
+            }
+          >
             <SelectTrigger>
               <SelectValue placeholder="Selecciona un programa" />
             </SelectTrigger>
@@ -176,17 +160,21 @@ export default function LeadCreate (props?: LeadsProps) {
             </SelectContent>
           </Select>
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-purple-600 text-white rounded-lg px-4 py-2 hover:bg-purple-700 disabled:opacity-50"
-        >
-          {loading ? "Guardando..." : "Crear Lead"}
-        </button>
-
-        {message && (
-          <p className="mt-3 text-sm font-medium text-gray-700">{message}</p>
-        )}
+        <div className="flex flex-row justify-between">
+          <Button
+            type="submit"
+            disabled={loading}
+            tone="purple"
+          >
+            {loading ? "Guardando..." : "Crear Lead"}
+          </Button>
+          <Button
+            to="/leads"     
+            tone="slate"    
+          >
+            Cancelar
+          </Button>
+        </div>
       </form>
     </div>
   )
