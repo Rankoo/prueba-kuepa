@@ -2,7 +2,9 @@ import { app, user } from "@/atoms/kuepa"
 import { useToast } from "@/components/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { leadService } from "@/services/leadService"
+import { programService } from "@/services/programService"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -15,13 +17,14 @@ export default function LeadCreate (props?: LeadsProps) {
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
-    // user: user.get()?._id,
     first_name: "",
     last_name: "",
     email: "",
-    mobile_phone: ""
+    mobile_phone: "",
+    interestProgram: ""
   })
 
+  const [programs, setPrograms] = useState([])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
@@ -59,8 +62,14 @@ export default function LeadCreate (props?: LeadsProps) {
     }
   }
 
-  useEffect(() => {
+  const init = async () => {
+    programService.getAll().then(({list})=>{
+      setPrograms(list.map(({_id, name}) => ({value: _id, label: name})))
+    })
+  }
 
+  useEffect(() => {
+    init()
     app.set({
       ...(app.get() || {}),
       app: 'kuepa',      module: 'leads',
@@ -118,7 +127,7 @@ export default function LeadCreate (props?: LeadsProps) {
           />
         </div>
          <div className="mb-4">
-          <Label htmlFor="name">
+          <Label htmlFor="email">
             Correo
           </Label>
           <Input
@@ -132,7 +141,7 @@ export default function LeadCreate (props?: LeadsProps) {
           />
         </div>
         <div className="mb-4">
-          <Label htmlFor="name">
+          <Label htmlFor="mobile_phone">
             Teléfono 
           </Label>
           <Input
@@ -145,6 +154,27 @@ export default function LeadCreate (props?: LeadsProps) {
             onChange={handleChange}
             required
           />
+        </div>
+        <div className="mb-4">
+          <Label htmlFor="program">
+            Programa en el que estas interesado 
+          </Label>
+          <Select name="program" value={formData.interestProgram} onValueChange={(value)=>{ setFormData({...formData, interestProgram: value})}}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un programa" />
+            </SelectTrigger>
+
+            <SelectContent>
+              {
+                programs.map(program => (
+                  <SelectItem key={program.value} value={program.value}>
+                    {program.label}
+                  </SelectItem>
+
+                ))
+              }
+            </SelectContent>
+          </Select>
         </div>
         <button
           type="submit"

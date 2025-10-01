@@ -23,7 +23,10 @@ export default function Leads (props?: LeadsProps) {
     full_name: string
     email: string
     mobile_phone: string
-    interestProgram: string
+    interestProgram: {
+      name: string
+      description: string
+    }
   }
 
   const [leads, setLeads] = useState<Lead[]>([])
@@ -68,10 +71,10 @@ export default function Leads (props?: LeadsProps) {
 
         <TableHeader>
           <TableRow>
-            <TableHead>Nombre</TableHead>
+            <TableHead>Nombre del Interesado</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Teléfono</TableHead>
-            <TableHead>Programa</TableHead>
+            <TableHead>Programa de Interes</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -84,7 +87,7 @@ export default function Leads (props?: LeadsProps) {
               <TableCell>{lead.full_name}</TableCell>
               <TableCell>{lead.email}</TableCell>
               <TableCell>{lead.mobile_phone}</TableCell>
-              <TableCell>{lead.interestProgram}</TableCell>
+              <TableCell>{lead.interestProgram?.name}</TableCell>
             </TableRow>
           )})}
         </TableBody>
