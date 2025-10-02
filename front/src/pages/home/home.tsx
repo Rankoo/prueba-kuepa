@@ -1,4 +1,4 @@
-import { app } from "@/atoms/kuepa"
+import { app, user } from "@/atoms/kuepa"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -7,7 +7,10 @@ export interface HomeProps {
 
 export default function Home (props?: HomeProps) {
 
+  const {first_name, last_name} = user.get().profile 
+  
   useEffect(() => {
+    
     app.set({
       ...(app.get() || {}),
       app: 'kuepa',
@@ -25,7 +28,7 @@ export default function Home (props?: HomeProps) {
   }, [])
   return (
     <>
-      <h1 className="flex text-4xl font-title text-slate-800">!Hola!</h1>
+      <h1 className="flex text-4xl font-title text-slate-800">!Hola! {first_name} {last_name}</h1>
     </>
   )
 }
