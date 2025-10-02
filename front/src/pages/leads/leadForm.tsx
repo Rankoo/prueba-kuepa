@@ -5,14 +5,17 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useEffect } from "react"
 import { useLeadForm } from "./hooks/useLeadForm"
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export interface LeadsProps {
 }
 
-export default function LeadCreate (props?: LeadsProps) {
+export default function LeadForm (props?: LeadsProps) {
 
-   const {
+  const { id } = useParams();
+  const navigate = useNavigate()
+
+  const {
     form, 
     loading,
     programs,
@@ -26,11 +29,10 @@ export default function LeadCreate (props?: LeadsProps) {
     email: "",
     mobile_phone: "",
     interestProgram: ""
-  })
-
-  const navigate = useNavigate()
+  }, id)
 
   useEffect(() => {
+    
     if (shouldRedirect) {
       navigate('/leads');
     }
@@ -63,14 +65,14 @@ export default function LeadCreate (props?: LeadsProps) {
 
   return (
     <div className="p-6 flex flex-col items-center">
-      <h1 className="flex text-4xl font-title text-purple-800 mb-6">Nuevo Lead</h1>
+      <h1 className="flex text-4xl font-title text-purple-800 mb-6">{id ? 'Editar' : 'Crear nuevo'} Lead</h1>
 
       <form
         onSubmit={handleSubmit}
         className="bg-white shadow-md rounded-2xl p-6 w-full max-w-md"
       >
         <h2 className="text-xl font-semibold mb-4 text-gray-700">
-          Crear nuevo Lead
+          {id ? 'Editar' : 'Crear nuevo'} Lead
         </h2>
 
         <div className="mb-4">
@@ -133,7 +135,7 @@ export default function LeadCreate (props?: LeadsProps) {
         </div>
         <div className="mb-4">
           <Label htmlFor="program">
-            Programa en el que estas interesado 
+            Programa de Interés
           </Label>
           <Select
             name="program"

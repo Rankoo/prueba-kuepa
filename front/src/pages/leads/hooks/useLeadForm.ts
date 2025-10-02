@@ -3,14 +3,15 @@ import { leadService } from "@/services/leadService";
 import { programService } from "@/services/programService";
 import { useEffect, useState } from "react";
 
-export function useLeadForm(initialValues = 
-  { 
+export function useLeadForm(initialValues =
+  {
     first_name: "",
     last_name: "",
     email: "",
     mobile_phone: "",
     interestProgram: ""
-  }) {
+  }, id = undefined)
+{
   const [form, setForm] = useState(initialValues);
   const [loading, setLoading] = useState(false)
   const [programs, setPrograms] = useState([])
@@ -20,7 +21,7 @@ export function useLeadForm(initialValues =
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-  const handleChangeSelect = (obj: {name:string, value:string}) => {
+  const handleChangeSelect = (obj: { name: string, value: string }) => {
     const { name, value } = obj;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -28,17 +29,37 @@ export function useLeadForm(initialValues =
   const resetForm = () => setForm(initialValues);
 
   const init = async () => {
-      programService.getAll().then(({list})=>{
-        setPrograms(list.map(({_id, name}) => ({value: _id, label: name})))
+    if (id) {
+      leadService.get({ _id: id }).then(({
+        lead:{
+          first_name,
+          last_name,
+          email,
+          mobile_phone,
+          interestProgram: {_id}
+        }
+      }) => {
+        setForm( {
+          first_name,
+          last_name,
+          email,
+          mobile_phone,
+          interestProgram: _id
+        })
       })
     }
+    programService.getAll().then(({ list }) => {
+      setPrograms(list.map(({ _id, name }) => ({ value: _id, label: name })))
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
 
-      const response = await leadService.post({ _data: form })
+      const response = await leadService.post({ _data: { _id: id, ...form }})
       toast({
         title: "¡Lead guardado!",
         description: "Lead guardado exitosamente",
@@ -59,18 +80,17 @@ export function useLeadForm(initialValues =
 
   useEffect(() => {
     init()
-  }, [programs])
+  }, [])
 
-  return { 
+  return {
     form,
     programs,
     loading,
     shouldRedirect,
     handleChange,
     handleChangeSelect,
-    handleSubmit, 
+    handleSubmit,
   };
 }
 
 
-  

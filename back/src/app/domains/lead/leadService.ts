@@ -297,8 +297,8 @@ class LeadService {
     try{
       const lead = await Lead.findOne({_id: _params._id})
       .populate({
-        path: 'contact',
-        select: 'first_name last_name incremental document number',
+        path: 'interestProgram',
+        select: '_id name description',
         options: { lean:true }
       })
       .lean()
